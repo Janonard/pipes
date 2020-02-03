@@ -75,7 +75,7 @@ where
     }
 }
 
-pub struct PipeConnector<P0, P1>
+pub struct Connector<P0, P1>
 where
     P0: Pipe,
     P1: Pipe<InputItem = P0::OutputItem>,
@@ -84,17 +84,17 @@ where
     pipe1: P1,
 }
 
-impl<P0, P1> PipeConnector<P0, P1>
+impl<P0, P1> Connector<P0, P1>
 where
     P0: Pipe,
     P1: Pipe<InputItem = P0::OutputItem>,
 {
     pub fn new(pipe0: P0, pipe1: P1) -> Self {
-        Self { pipe0, pipe1 }
+        Connector { pipe0, pipe1 }
     }
 }
 
-impl<P0, P1> Pipe for PipeConnector<P0, P1>
+impl<P0, P1> Pipe for Connector<P0, P1>
 where
     P0: Pipe,
     P1: Pipe<InputItem = P0::OutputItem>,
@@ -104,5 +104,36 @@ where
 
     fn next(&mut self, input: Self::InputItem) -> Self::OutputItem {
         self.pipe1.next(self.pipe0.next(input))
+    }
+}
+
+pub struct Bypass<P>
+where
+    P: Pipe,
+    P::InputItem: Clone,
+{
+    pipe: P,
+}
+
+impl<P> Bypass<P>
+where
+    P: Pipe,
+    P::InputItem: Clone,
+{
+    pub fn new(pipe: P) -> Self {
+        Self { pipe }
+    }
+}
+
+impl<P> Pipe for Bypass<P>
+where
+    P: Pipe,
+    P::InputItem: Clone,
+{
+    type InputItem = P::InputItem;
+    type OutputItem = (P::InputItem, P::OutputItem);
+
+    fn next(&mut self, input: P::InputItem) -> (P::InputItem, P::OutputItem) {
+        (input.clone(), self.pipe.next(input))
     }
 }

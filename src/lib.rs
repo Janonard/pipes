@@ -21,18 +21,25 @@ pub trait Pipe: Sized {
         util::PostMap::new(self, mapper)
     }
 
-    fn pre_connect<P>(self, pre_pipe: P) -> util::PipeConnector<P, Self>
+    fn pre_connect<P>(self, pre_pipe: P) -> util::Connector<P, Self>
     where
         P: Pipe<OutputItem = Self::InputItem>,
     {
-        util::PipeConnector::new(pre_pipe, self)
+        util::Connector::new(pre_pipe, self)
     }
 
-    fn post_connect<P>(self, post_pipe: P) -> util::PipeConnector<Self, P>
+    fn post_connect<P>(self, post_pipe: P) -> util::Connector<Self, P>
     where
         P: Pipe<InputItem = Self::OutputItem>,
     {
-        util::PipeConnector::new(self, post_pipe)
+        util::Connector::new(self, post_pipe)
+    }
+
+    fn bypass(self) -> util::Bypass<Self>
+    where
+        Self::InputItem: Clone,
+    {
+        util::Bypass::new(self)
     }
 }
 
