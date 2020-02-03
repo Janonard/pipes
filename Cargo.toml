@@ -1,5 +1,5 @@
 [package]
-name = "abstract-buffers"
+name = "pipes"
 version = "0.1.0"
 authors = ["Jan-Oliver 'Janonard' Opdenhövel <jan.opdenhoevel@protonmail.com>"]
 edition = "2018"
