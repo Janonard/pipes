@@ -1,3 +1,4 @@
+pub mod slice;
 pub mod util;
 
 pub trait Pipe: Sized {
