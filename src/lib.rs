@@ -4,7 +4,7 @@ pub trait Pipe: Sized {
     type InputItem;
     type OutputItem;
 
-    fn next(&mut self, item: Self::InputItem) -> Option<Self::OutputItem>;
+    fn next(&mut self, item: Self::InputItem) -> Self::OutputItem;
 
     fn pre_map<I, F>(self, mapper: F) -> util::PreMap<I, Self, F>
     where
@@ -43,28 +43,20 @@ where
     type InputItem = (P0::InputItem, P1::InputItem);
     type OutputItem = (P0::OutputItem, P1::OutputItem);
 
-    fn next(
-        &mut self,
-        item: (P0::InputItem, P1::InputItem),
-    ) -> Option<(P0::OutputItem, P1::OutputItem)> {
-        let item0 = self.0.next(item.0)?;
-        let item1 = self.1.next(item.1)?;
-        Some((item0, item1))
+    fn next(&mut self, item: (P0::InputItem, P1::InputItem)) -> (P0::OutputItem, P1::OutputItem) {
+        (self.0.next(item.0), self.1.next(item.1))
     }
 }
 
-pub trait Pipeline: Pipe<InputItem = (), OutputItem = ()> {
+pub trait Pipeline: Pipe<InputItem = (), OutputItem = bool> {
     fn run(&mut self) {
-        loop {
-            match self.next(()) {
-                None => break,
-                _ => (),
-            }
+        while self.next(()) {
+            // do nothing
         }
     }
 }
 
-impl<P> Pipeline for P where P: Pipe<InputItem = (), OutputItem = ()> {}
+impl<P> Pipeline for P where P: Pipe<InputItem = (), OutputItem = bool> {}
 
 pub struct PipeIter<I: Iterator> {
     iter: I,
@@ -78,7 +70,7 @@ impl<I: Iterator> PipeIter<I> {
 
 impl<I: Iterator> Pipe for PipeIter<I> {
     type InputItem = ();
-    type OutputItem = I::Item;
+    type OutputItem = Option<I::Item>;
 
     fn next(&mut self, _: ()) -> Option<I::Item> {
         self.iter.next()
@@ -95,10 +87,10 @@ impl<P: Pipe<InputItem = ()>> IterPipe<P> {
     }
 }
 
-impl<P: Pipe<InputItem = ()>> Iterator for IterPipe<P> {
-    type Item = P::OutputItem;
+impl<O, P: Pipe<InputItem = (), OutputItem = Option<O>>> Iterator for IterPipe<P> {
+    type Item = O;
 
-    fn next(&mut self) -> Option<P::OutputItem> {
+    fn next(&mut self) -> Option<O> {
         self.pipe.next(())
     }
 }

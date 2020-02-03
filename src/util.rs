@@ -33,7 +33,7 @@ where
     type InputItem = I;
     type OutputItem = P::OutputItem;
 
-    fn next(&mut self, item: I) -> Option<P::OutputItem> {
+    fn next(&mut self, item: I) -> P::OutputItem {
         self.pipe.next((self.mapper)(item))
     }
 }
@@ -70,8 +70,8 @@ where
     type InputItem = P::InputItem;
     type OutputItem = O;
 
-    fn next(&mut self, item: P::InputItem) -> Option<O> {
-        Some((self.mapper)(self.pipe.next(item)?))
+    fn next(&mut self, item: P::InputItem) -> O {
+        (self.mapper)(self.pipe.next(item))
     }
 }
 
@@ -102,8 +102,7 @@ where
     type InputItem = P0::InputItem;
     type OutputItem = P1::OutputItem;
 
-    fn next(&mut self, input: Self::InputItem) -> Option<Self::OutputItem> {
-        let intermediate = self.pipe0.next(input)?;
-        self.pipe1.next(intermediate)
+    fn next(&mut self, input: Self::InputItem) -> Self::OutputItem {
+        self.pipe1.next(self.pipe0.next(input))
     }
 }
