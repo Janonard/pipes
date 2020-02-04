@@ -137,3 +137,62 @@ where
         (input.clone(), self.pipe.next(input))
     }
 }
+
+pub struct Lazy<I, O, F>
+where
+    F: FnMut(I) -> O,
+{
+    function: F,
+    input: PhantomData<I>,
+    output: PhantomData<O>,
+}
+
+impl<I, O, F> Lazy<I, O, F>
+where
+    F: FnMut(I) -> O,
+{
+    pub fn new(function: F) -> Self {
+        Self {
+            function,
+            input: PhantomData,
+            output: PhantomData,
+        }
+    }
+}
+
+impl<I, O, F> Pipe for Lazy<I, O, F>
+where
+    F: FnMut(I) -> O,
+{
+    type InputItem = I;
+    type OutputItem = O;
+
+    fn next(&mut self, input: I) -> O {
+        (self.function)(input)
+    }
+}
+
+pub struct OptionMap<P>
+where
+    P: Pipe,
+{
+    pipe: P,
+}
+
+impl<P: Pipe> OptionMap<P> {
+    pub fn new(pipe: P) -> Self {
+        Self { pipe }
+    }
+}
+
+impl<P> Pipe for OptionMap<P>
+where
+    P: Pipe,
+{
+    type InputItem = Option<P::InputItem>;
+    type OutputItem = Option<P::OutputItem>;
+
+    fn next(&mut self, item: Option<P::InputItem>) -> Option<P::OutputItem> {
+        item.map(|item| self.pipe.next(item))
+    }
+}

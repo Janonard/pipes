@@ -42,6 +42,7 @@ impl<'a, T> Pipe for SliceProducerMut<'a, T> {
     }
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub enum ConsumeResult {
     Ok,
     LastItem,

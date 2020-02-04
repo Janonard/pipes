@@ -41,6 +41,10 @@ pub trait Pipe: Sized {
     {
         util::Bypass::new(self)
     }
+
+    fn optional(self) -> util::OptionMap<Self> {
+        util::OptionMap::new(self)
+    }
 }
 
 impl<P0, P1> Pipe for (P0, P1)
