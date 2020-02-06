@@ -232,8 +232,8 @@ where
 
 impl<I, M, P0, P1> Shr<P1> for PipeConstraint<I, M, P0>
 where
-    P0: Pipe<InputItem=I, OutputItem=M>,
-    P1: Pipe<InputItem=M>
+    P0: Pipe<InputItem = I, OutputItem = M>,
+    P1: Pipe<InputItem = M>,
 {
     type Output = PipeConstraint<P0::InputItem, P1::OutputItem, Connector<P0, P1>>;
 
