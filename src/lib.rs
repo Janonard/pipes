@@ -7,34 +7,6 @@ pub trait Pipe: Sized {
 
     fn next(&mut self, item: Self::InputItem) -> Self::OutputItem;
 
-    fn pre_map<I, F>(self, mapper: F) -> util::PreMap<I, Self, F>
-    where
-        F: Fn(I) -> Self::InputItem,
-    {
-        util::PreMap::new(self, mapper)
-    }
-
-    fn post_map<O, F>(self, mapper: F) -> util::PostMap<O, Self, F>
-    where
-        F: Fn(Self::OutputItem) -> O,
-    {
-        util::PostMap::new(self, mapper)
-    }
-
-    fn pre_connect<P>(self, pre_pipe: P) -> util::Connector<P, Self>
-    where
-        P: Pipe<OutputItem = Self::InputItem>,
-    {
-        util::Connector::new(pre_pipe, self)
-    }
-
-    fn post_connect<P>(self, post_pipe: P) -> util::Connector<Self, P>
-    where
-        P: Pipe<InputItem = Self::OutputItem>,
-    {
-        util::Connector::new(self, post_pipe)
-    }
-
     fn bypass(self) -> util::Bypass<Self>
     where
         Self::InputItem: Clone,
@@ -61,15 +33,6 @@ where
 
     fn next(&mut self, item: (P0::InputItem, P1::InputItem)) -> (P0::OutputItem, P1::OutputItem) {
         (self.0.next(item.0), self.1.next(item.1))
-    }
-}
-
-impl Pipe for () {
-    type InputItem = ();
-    type OutputItem = ();
-
-    fn next(&mut self, _: ()) -> () {
-        ()
     }
 }
 

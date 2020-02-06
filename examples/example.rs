@@ -17,8 +17,7 @@ fn main() {
         let left_producer = SliceProducer::new(input0.as_ref());
         let right_producer = SliceProducer::new(input1.as_ref());
 
-        ().constraint()
-            >> Lazy::new(|_: ()| ((), ()))
+        Lazy::new(|_: ()| ((), ())).constraint()
             >> (left_producer, right_producer)
             >> Lazy::new(|(left, right): (Option<&f32>, Option<&f32>)| Some((*(left?), *(right?))))
     };
