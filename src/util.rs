@@ -1,6 +1,6 @@
 use crate::Pipe;
 use std::marker::PhantomData;
-use std::ops::Shr;
+use std::ops::{Shl, Shr};
 
 pub struct PreMap<I, P, F>
 where
@@ -239,5 +239,17 @@ where
 
     fn shr(self, other: P1) -> Self::Output {
         Self::Output::new(Connector::new(self.pipe, other))
+    }
+}
+
+impl<O, M, P0, P1> Shl<P0> for PipeConstraint<M, O, P1>
+where
+    P0: Pipe<OutputItem = M>,
+    P1: Pipe<InputItem = M, OutputItem = O>,
+{
+    type Output = PipeConstraint<P0::InputItem, P1::OutputItem, Connector<P0, P1>>;
+
+    fn shl(self, other: P0) -> Self::Output {
+        Self::Output::new(Connector::new(other, self.pipe))
     }
 }

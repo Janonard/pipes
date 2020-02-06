@@ -64,6 +64,15 @@ where
     }
 }
 
+impl Pipe for () {
+    type InputItem = ();
+    type OutputItem = ();
+
+    fn next(&mut self, _: ()) -> () {
+        ()
+    }
+}
+
 pub trait Pipeline: Pipe<InputItem = (), OutputItem = bool> {
     fn run(&mut self) {
         while self.next(()) {
