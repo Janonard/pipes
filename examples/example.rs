@@ -21,7 +21,7 @@ fn main() {
         // Derefing the references, wrapping the values in a general option.
         .post_map(|(left, right)| Some((*(left?), *(right?))));
 
-    // Checking the input and output of the pipe by contraining it.
+    // Checking the input and output of the pipe by constraining it.
     type InputPipe<P> = PipeConstraint<(), Option<(f32, f32)>, P>;
     let input: InputPipe<_> = input.constraint();
 
@@ -53,7 +53,7 @@ fn main() {
             .constraint();
 
     // Completing the pipeline and running it.
-    process.pre_connect(input).post_connect(output).run();
+    (input >> process >> output).run();
 
     // Validating the result.
     for ((i0, i1), (o0, o1)) in Iterator::zip(
