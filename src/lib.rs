@@ -45,6 +45,10 @@ pub trait Pipe: Sized {
     fn optional(self) -> util::OptionMap<Self> {
         util::OptionMap::new(self)
     }
+
+    fn constraint(self) -> util::PipeConstraint<Self::InputItem, Self::OutputItem, Self> {
+        util::PipeConstraint::new(self)
+    }
 }
 
 impl<P0, P1> Pipe for (P0, P1)

@@ -196,3 +196,35 @@ where
         item.map(|item| self.pipe.next(item))
     }
 }
+
+pub struct PipeConstraint<I, O, P>
+where
+    P: Pipe<InputItem = I, OutputItem = O>,
+{
+    pipe: P,
+    item: PhantomData<(I, O)>,
+}
+
+impl<I, O, P> PipeConstraint<I, O, P>
+where
+    P: Pipe<InputItem = I, OutputItem = O>,
+{
+    pub fn new(pipe: P) -> Self {
+        Self {
+            pipe,
+            item: PhantomData,
+        }
+    }
+}
+
+impl<I, O, P> Pipe for PipeConstraint<I, O, P>
+where
+    P: Pipe<InputItem = I, OutputItem = O>,
+{
+    type InputItem = I;
+    type OutputItem = O;
+
+    fn next(&mut self, item: I) -> O {
+        self.pipe.next(item)
+    }
+}

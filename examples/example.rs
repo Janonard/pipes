@@ -4,38 +4,6 @@ use pipes::{Pipe, Pipeline};
 
 const LENGTH: usize = 128;
 
-struct Input<P: Pipe<InputItem = (), OutputItem = Option<(f32, f32)>>> {
-    pipe: P,
-}
-
-impl<P> Pipe for Input<P>
-where
-    P: Pipe<InputItem = (), OutputItem = Option<(f32, f32)>>,
-{
-    type InputItem = ();
-    type OutputItem = Option<(f32, f32)>;
-
-    fn next(&mut self, _: ()) -> Option<(f32, f32)> {
-        self.pipe.next(())
-    }
-}
-
-struct Output<P: Pipe<InputItem = Option<(f32, f32)>, OutputItem = bool>> {
-    pipe: P,
-}
-
-impl<P> Pipe for Output<P>
-where
-    P: Pipe<InputItem = Option<(f32, f32)>, OutputItem = bool>,
-{
-    type InputItem = Option<(f32, f32)>;
-    type OutputItem = bool;
-
-    fn next(&mut self, item: Option<(f32, f32)>) -> bool {
-        self.pipe.next(item)
-    }
-}
-
 fn main() {
     // Allocating input and output data.
     let input0: Vec<f32> = (0..LENGTH).map(|i| i as f32).collect();
@@ -52,7 +20,10 @@ fn main() {
         .pre_map(|_: ()| ((), ()))
         // Derefing the references, wrapping the values in a general option.
         .post_map(|(left, right)| Some((*(left?), *(right?))));
-    let input = Input { pipe: input };
+
+    // Checking the input and output of the pipe by contraining it.
+    type InputPipe<P> = PipeConstraint<(), Option<(f32, f32)>, P>;
+    let input: InputPipe<_> = input.constraint();
 
     // Creating the output part of the pipe.
     let output = (
@@ -61,7 +32,7 @@ fn main() {
     )
         // Making consumption optional.
         .optional()
-        // Evaluating the consumption result, usefull for the processing loop.
+        // Evaluating the consumption result, useful for the processing loop.
         .post_map(|output: Option<(ConsumeResult, ConsumeResult)>| {
             if let Some((left_result, right_result)) = output {
                 left_result == ConsumeResult::Ok && right_result == ConsumeResult::Ok
@@ -70,8 +41,26 @@ fn main() {
             }
         });
 
-    // Lazily creating a rendering pipeline.
-    let process = Lazy::new(|(left, right): (f32, f32)| (left + right, -1.0 * (left + right))).optional();
+    // Checking the input and output of the pipe by contraining it.
+    type OutputPipe<P> = PipeConstraint<Option<(f32, f32)>, bool, P>;
+    let output: OutputPipe<_> = output.constraint();
 
+    // Lazily creating a rendering pipeline.
+    type ProcessPipe<P> = PipeConstraint<Option<(f32, f32)>, Option<(f32, f32)>, P>;
+    let process: ProcessPipe<_> =
+        Lazy::new(|(left, right): (f32, f32)| (left + right, -1.0 * (left + right)))
+            .optional()
+            .constraint();
+
+    // Completing the pipeline and running it.
     process.pre_connect(input).post_connect(output).run();
+
+    // Validating the result.
+    for ((i0, i1), (o0, o1)) in Iterator::zip(
+        Iterator::zip(input0.iter(), input1.iter()),
+        Iterator::zip(output0.iter(), output1.iter()),
+    ) {
+        assert_eq!(*i0 + *i1, *o0);
+        assert_eq!((-1.0) * (*i0 + *i1), *o1);
+    }
 }
