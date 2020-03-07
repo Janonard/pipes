@@ -1,7 +1,7 @@
 pub mod slice;
 pub mod util;
 
-pub trait Pipe: Sized {
+pub trait Pipe {
     type InputItem;
     type OutputItem;
 
@@ -9,16 +9,23 @@ pub trait Pipe: Sized {
 
     fn bypass(self) -> util::Bypass<Self>
     where
+        Self: Sized,
         Self::InputItem: Clone,
     {
         util::Bypass::new(self)
     }
 
-    fn optional(self) -> util::OptionMap<Self> {
+    fn optional(self) -> util::OptionMap<Self>
+    where
+        Self: Sized,
+    {
         util::OptionMap::new(self)
     }
 
-    fn constraint(self) -> util::PipeConstraint<Self::InputItem, Self::OutputItem, Self> {
+    fn constraint(self) -> util::PipeConstraint<Self::InputItem, Self::OutputItem, Self>
+    where
+        Self: Sized,
+    {
         util::PipeConstraint::new(self)
     }
 }
