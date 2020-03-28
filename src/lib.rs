@@ -1,91 +1,54 @@
-pub mod slice;
-pub mod util;
-
 pub trait Pipe {
     type InputItem;
     type OutputItem;
 
     fn next(&mut self, item: Self::InputItem) -> Self::OutputItem;
 
-    fn bypass(self) -> util::Bypass<Self>
+    fn bypass(self) -> Bypass<Self>
     where
         Self: Sized,
         Self::InputItem: Clone,
     {
-        util::Bypass::new(self)
+        Bypass::new(self)
     }
 
-    fn optional(self) -> util::OptionMap<Self>
+    fn compose(self) -> Compose<Self::InputItem, Self::OutputItem, Self>
     where
         Self: Sized,
     {
-        util::OptionMap::new(self)
+        Compose::new(self)
     }
 
-    fn constraint(self) -> util::PipeConstraint<Self::InputItem, Self::OutputItem, Self>
+    fn connect<O: Pipe<InputItem = Self::OutputItem>>(self, other: O) -> Connector<Self, O>
     where
         Self: Sized,
     {
-        util::PipeConstraint::new(self)
+        Connector::new(self, other)
+    }
+
+    fn into_iter(self) -> IterPipe<Self>
+    where
+        Self: Sized + Pipe<InputItem = ()>,
+    {
+        IterPipe::new(self)
+    }
+
+    fn optional(self) -> OptionMap<Self>
+    where
+        Self: Sized,
+    {
+        OptionMap::new(self)
     }
 }
 
-impl<P0, P1> Pipe for (P0, P1)
-where
-    P0: Pipe,
-    P1: Pipe,
-{
-    type InputItem = (P0::InputItem, P1::InputItem);
-    type OutputItem = (P0::OutputItem, P1::OutputItem);
+mod util;
+pub use util::*;
 
-    fn next(&mut self, item: (P0::InputItem, P1::InputItem)) -> (P0::OutputItem, P1::OutputItem) {
-        (self.0.next(item.0), self.1.next(item.1))
-    }
-}
+mod iter;
+pub use iter::*;
 
-pub trait Pipeline: Pipe<InputItem = (), OutputItem = bool> {
-    fn run(&mut self) {
-        while self.next(()) {
-            // do nothing
-        }
-    }
-}
+mod compose;
+pub use compose::*;
 
-impl<P> Pipeline for P where P: Pipe<InputItem = (), OutputItem = bool> {}
-
-pub struct PipeIter<I: Iterator> {
-    iter: I,
-}
-
-impl<I: Iterator> PipeIter<I> {
-    pub fn new(iter: I) -> Self {
-        Self { iter }
-    }
-}
-
-impl<I: Iterator> Pipe for PipeIter<I> {
-    type InputItem = ();
-    type OutputItem = Option<I::Item>;
-
-    fn next(&mut self, _: ()) -> Option<I::Item> {
-        self.iter.next()
-    }
-}
-
-pub struct IterPipe<P: Pipe<InputItem = ()>> {
-    pipe: P,
-}
-
-impl<P: Pipe<InputItem = ()>> IterPipe<P> {
-    pub fn new(pipe: P) -> Self {
-        Self { pipe }
-    }
-}
-
-impl<O, P: Pipe<InputItem = (), OutputItem = Option<O>>> Iterator for IterPipe<P> {
-    type Item = O;
-
-    fn next(&mut self) -> Option<O> {
-        self.pipe.next(())
-    }
-}
+#[cfg(test)]
+mod tests;
