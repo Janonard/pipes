@@ -122,3 +122,26 @@ where
         item.map(|item| self.pipe.next(item))
     }
 }
+
+pub struct Enumerate<P> where P: Pipe {
+    pipe: P,
+    progress: usize,
+}
+
+impl<P: Pipe> Enumerate<P> {
+    pub fn new(pipe: P) -> Self {
+        Enumerate { pipe, progress: 0 }
+    }
+}
+
+impl<P: Pipe> Pipe for Enumerate<P> {
+    type InputItem = P::InputItem;
+    type OutputItem = (usize, P::OutputItem);
+
+    fn next(&mut self, item: P::InputItem) -> (usize, P::OutputItem) {
+        let next_item = self.pipe.next(item);
+        let index = self.progress;
+        self.progress += 1;
+        (index, next_item)
+    }
+}

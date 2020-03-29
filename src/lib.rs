@@ -39,6 +39,13 @@ pub trait Pipe {
     {
         OptionMap::new(self)
     }
+
+    fn enumerate(self) -> Enumerate<Self>
+    where
+        Self: Sized,
+    {
+        Enumerate::new(self)
+    }
 }
 
 mod util;
