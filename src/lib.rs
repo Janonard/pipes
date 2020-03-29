@@ -48,6 +48,14 @@ pub trait Pipe {
     }
 }
 
+impl Pipe for () {
+    type InputItem = ();
+    type OutputItem = ();
+
+    #[inline]
+    fn next(&mut self, _: ()) -> () {}
+}
+
 mod util;
 pub use util::*;
 
