@@ -14,6 +14,7 @@ impl<I: Iterator> Pipe for PipeIter<I> {
     type InputItem = ();
     type OutputItem = Option<I::Item>;
 
+    #[inline]
     fn next(&mut self, _: ()) -> Option<I::Item> {
         self.iter.next()
     }
@@ -32,6 +33,7 @@ impl<P: Pipe<InputItem = ()>> IterPipe<P> {
 impl<O, P: Pipe<InputItem = (), OutputItem = Option<O>>> Iterator for IterPipe<P> {
     type Item = O;
 
+    #[inline]
     fn next(&mut self) -> Option<O> {
         self.pipe.next(())
     }

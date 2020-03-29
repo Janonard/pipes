@@ -29,6 +29,7 @@ where
     type InputItem = I;
     type OutputItem = O;
 
+    #[inline]
     fn next(&mut self, item: I) -> O {
         self.pipe.next(item)
     }
