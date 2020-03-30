@@ -20,21 +20,33 @@ impl<I: Iterator> Pipe for PipeIter<I> {
     }
 }
 
-pub struct IterPipe<P: Pipe<InputItem = ()>> {
+pub struct IterPipe<P>
+where
+    P: Pipe,
+    P::InputItem: Default,
+{
     pipe: P,
 }
 
-impl<P: Pipe<InputItem = ()>> IterPipe<P> {
+impl<P> IterPipe<P>
+where
+    P: Pipe,
+    P::InputItem: Default,
+{
     pub fn new(pipe: P) -> Self {
         Self { pipe }
     }
 }
 
-impl<O, P: Pipe<InputItem = (), OutputItem = Option<O>>> Iterator for IterPipe<P> {
+impl<O, P> Iterator for IterPipe<P>
+where
+    P: Pipe<OutputItem = Option<O>>,
+    P::InputItem: Default,
+{
     type Item = O;
 
     #[inline]
     fn next(&mut self) -> Option<O> {
-        self.pipe.next(())
+        self.pipe.next(P::InputItem::default())
     }
 }

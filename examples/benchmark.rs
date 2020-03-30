@@ -1,8 +1,8 @@
-use pipes::*;
+use iterpipe::*;
 use time::Instant;
 
 mod piped {
-    use pipes::Pipe;
+    use iterpipe::Pipe;
 
     struct Envelope {
         attack_len: usize,
@@ -81,6 +81,7 @@ mod piped {
         type InputItem = usize;
         type OutputItem = f32;
 
+        #[inline]
         fn next(&mut self, index: usize) -> f32 {
             self.sine.next(index) * self.env.next(index % self.pulse_distance)
         }
@@ -88,7 +89,7 @@ mod piped {
 }
 
 mod manual {
-    use pipes::Pipe;
+    use iterpipe::Pipe;
 
     pub struct Metronome {
         attack_len: usize,
@@ -117,6 +118,7 @@ mod manual {
         type InputItem = usize;
         type OutputItem = f32;
 
+        #[inline]
         fn next(&mut self, index: usize) -> f32 {
             let wave_index = index % self.wave_length;
             let wave_progress = wave_index as f32 / self.wave_length as f32;
@@ -163,11 +165,11 @@ where
 const INFO: &str = "# This program benchmarks pipes by rendering a simple metronome signal.
 # The signal is calculated by a pipes-based implementation first and by a manually implementated one
 # afterwards. Both implementations are executed 200 times each, which will take about 15 minutes,
-# depending on your system. The runtime of each execution is printed in CSV-style format, which can
-# parsed and analyzed.
+# depending on your system. The runtime of each execution is printed in a CSV-style format, which
+# can parsed and analyzed.
 #
 # This benchmark shows that pipes-based implementations aren't significantly slower than manually
-# implemented ones; Only by 0.7 +- 1.2%.
+# implemented ones; Only by 1.0% ± 0.7%.
 #
 ";
 
