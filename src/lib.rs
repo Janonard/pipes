@@ -450,7 +450,7 @@ impl Pipe for () {
     type OutputItem = ();
 
     #[inline]
-    fn next(&mut self, _: ()) -> () {}
+    fn next(&mut self, _: ()) {}
 }
 
 mod util;
