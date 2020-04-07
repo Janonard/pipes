@@ -189,34 +189,34 @@ pub trait Pipe {
     /// Create a composable pipe.
     ///
     /// Composable pipes implement the `>>` operator that concatenates pipes.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use iterpipes::*;
-    /// 
+    ///
     /// /// A pipe that turns an index into a periodic progress value between 0.0 and 1.0.
     /// struct Progress {
     ///     period_length: usize,
     /// }
-    /// 
+    ///
     /// impl Pipe for Progress {
     ///     type InputItem = usize;
     ///     type OutputItem = f32;
-    /// 
+    ///
     ///     #[inline]
     ///     fn next(&mut self, index: usize) -> f32 {
     ///         (index % self.period_length) as f32 / self.period_length as f32
     ///     }
     /// }
-    /// 
+    ///
     /// /// A pipe that turns a progress value into a square wave.
     /// struct SquareWave;
-    /// 
+    ///
     /// impl Pipe for SquareWave {
     ///     type InputItem = f32;
     ///     type OutputItem = f32;
-    /// 
+    ///
     ///     #[inline]
     ///     fn next(&mut self, progress: f32) -> f32 {
     ///         if progress < 0.5 {
@@ -226,16 +226,16 @@ pub trait Pipe {
     ///         }
     ///     }
     /// }
-    /// 
+    ///
     /// let mut pipe = Progress {period_length: 4}.compose() >> SquareWave;
-    /// 
+    ///
     /// for (index, frame) in [-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0].iter().enumerate() {
     ///     assert_eq!(*frame, pipe.next(index));
     /// }
     /// ```
-    /// 
+    ///
     /// # A technical note
-    /// 
+    ///
     /// The `Compose` struct is a workaround the fact that this crate can not implement the `Shr` trait (the `>>` operator) for every type that implements `Pipe` since `Shr` isn't a part of this crate. This patttern is known as [the newtype pattern](https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types).
     fn compose(self) -> Composed<Self>
     where
@@ -245,38 +245,38 @@ pub trait Pipe {
     }
 
     /// Connect two pipes.
-    /// 
+    ///
     /// The created pipe takes an input item for `self`, calculates the intermediate value and then uses it to calculate the output value of the `other` pipe.
-    /// 
+    ///
     /// Obviously, the `InputItem` of `self` and the `OutputItem` of the `other` pipe have to match!
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use iterpipes::*;
-    /// 
+    ///
     /// /// A pipe that turns an index into a periodic progress value between 0.0 and 1.0.
     /// struct Progress {
     ///     period_length: usize,
     /// }
-    /// 
+    ///
     /// impl Pipe for Progress {
     ///     type InputItem = usize;
     ///     type OutputItem = f32;
-    /// 
+    ///
     ///     #[inline]
     ///     fn next(&mut self, index: usize) -> f32 {
     ///         (index % self.period_length) as f32 / self.period_length as f32
     ///     }
     /// }
-    /// 
+    ///
     /// /// A pipe that turns a progress value into a square wave.
     /// struct SquareWave;
-    /// 
+    ///
     /// impl Pipe for SquareWave {
     ///     type InputItem = f32;
     ///     type OutputItem = f32;
-    /// 
+    ///
     ///     #[inline]
     ///     fn next(&mut self, progress: f32) -> f32 {
     ///         if progress < 0.5 {
@@ -286,9 +286,9 @@ pub trait Pipe {
     ///         }
     ///     }
     /// }
-    /// 
+    ///
     /// let mut pipe = Progress {period_length: 4}.connect(SquareWave);
-    /// 
+    ///
     /// for (index, frame) in [-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0].iter().enumerate() {
     ///     assert_eq!(*frame, pipe.next(index));
     /// }
@@ -301,24 +301,24 @@ pub trait Pipe {
     }
 
     /// Wrap the pipe into an iterator.
-    /// 
+    ///
     /// For example, this can be used to iterate over a pipeline in a `for` loop. The input item needs to have a default value, since the iterator has to create it on it's own, and the output item must be an `Option`al value.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use iterpipes::*;
-    /// 
+    ///
     /// /// An pipe/iterator over a slice.
     /// struct SlicePipe<'a, T> {
     ///     data: &'a [T],
     ///     index: usize,
     /// }
-    /// 
+    ///
     /// impl<'a, T> Pipe for SlicePipe<'a, T> {
     ///     type InputItem = ();
     ///     type OutputItem = Option<&'a T>;
-    /// 
+    ///
     ///     #[inline]
     ///     fn next(&mut self, _: ()) -> Option<&'a T> {
     ///         let value = self.data.get(self.index);
@@ -328,7 +328,7 @@ pub trait Pipe {
     ///         value
     ///     }
     /// }
-    /// 
+    ///
     /// const DATA: &[u32] = &[3, 2, 1];
     /// for (index, value) in (SlicePipe {data: DATA, index: 0}).into_iter().enumerate() {
     ///     assert_eq!(DATA[index], *value);
@@ -343,14 +343,14 @@ pub trait Pipe {
     }
 
     /// Optionalize the pipe.
-    /// 
+    ///
     /// The decorated pipe's input and output items are the optional versions of the original input and output items. If an input item is fed into the decorated pipe, it returns some output value, but if `None` is fed into the decorated pipe, `None` is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use iterpipes::*;
-    /// 
+    ///
     /// /// A pipe that multiplies an input item by a factor.
     /// struct Multiply<T>
     /// where
@@ -358,54 +358,54 @@ pub trait Pipe {
     /// {
     ///     factor: T,
     /// }
-    /// 
+    ///
     /// impl<T> Pipe for Multiply<T>
-    /// where 
+    /// where
     ///     T: std::ops::Mul<T> + Copy
     /// {
     ///     type InputItem = T;
     ///     type OutputItem = T::Output;
-    /// 
+    ///
     ///     fn next(&mut self, item: T) -> T::Output {
     ///         item * self.factor
     ///     }
     /// }
-    /// 
+    ///
     /// let mut pipe = Multiply::<u32> { factor: 2 }.optional();
-    /// 
+    ///
     /// assert_eq!(Some(4), pipe.next(Some(2)));
     /// assert_eq!(None, pipe.next(None));
-    /// ``` 
-    fn optional(self) -> OptionMap<Self>
+    /// ```
+    fn optional(self) -> Optional<Self>
     where
         Self: Sized,
     {
-        OptionMap::new(self)
+        Optional::new(self)
     }
 
     /// Enumerate the output items of a pipe.
-    /// 
+    ///
     /// The decorated pipe will return a tuple of an index and the output item. The index starts from 0 and is counted up for every output item.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use iterpipes::*;
-    /// 
+    ///
     /// /// A pipe that always returns a clone of the same value.
     /// struct DefaultPipe<T: Clone> {
     ///     value: T,
     /// }
-    /// 
+    ///
     /// impl<T: Clone> Pipe for DefaultPipe<T> {
     ///     type InputItem = ();
     ///     type OutputItem = T;
-    /// 
+    ///
     ///     fn next(&mut self, _: ()) -> T {
     ///         self.value.clone()
     ///     }
     /// }
-    /// 
+    ///
     /// let mut pipe = DefaultPipe { value: 42u8 }.enumerate();
     /// assert_eq!((0, 42), pipe.next(()));
     /// assert_eq!((1, 42), pipe.next(()));
@@ -419,20 +419,20 @@ pub trait Pipe {
     }
 
     /// Create a boxed trait object of the pipe.
-    /// 
+    ///
     /// This might be useful to move pipes across API bounds since it hides the internal composition of the pipe.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use iterpipes::*;
-    /// 
+    ///
     /// fn create_pipe() -> Box<dyn Pipe<InputItem = usize, OutputItem = usize>> {
     ///     Lazy::new(|i| i * 2).boxed()
     /// }
-    /// 
+    ///
     /// let mut pipe = create_pipe();
-    /// 
+    ///
     /// for i in 0..4 {
     ///     assert_eq!(i*2, pipe.next(i));
     /// }

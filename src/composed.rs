@@ -1,6 +1,11 @@
 use crate::{Connector, Pipe};
 use std::ops::Shr;
 
+/// A composable or composed pipe.
+///
+/// This struct is an implementation of the [newtype pattern](https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types) to implement the `>>` operator for pipes (manifested as the `Shr` trait).
+///
+/// For more information, please see [the documentation of the `compose` method](trait.Pipe.html#method.compose).
 pub struct Composed<P>
 where
     P: Pipe,
@@ -12,10 +17,12 @@ impl<P> Composed<P>
 where
     P: Pipe,
 {
+    /// Create new composable or composed pipe.
     pub fn new(pipe: P) -> Self {
         Composed { pipe }
     }
 
+    /// Unwrap the inner pipe.
     pub fn unwrap(self) -> P {
         self.pipe
     }
