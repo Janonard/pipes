@@ -227,10 +227,13 @@ pub trait Pipe {
     ///     }
     /// }
     ///
-    /// let mut pipe = Progress {period_length: 4}.compose() >> SquareWave;
+    /// let mut pipe = PipeIter::new(0..).compose()
+    ///     >> Lazy::new(|i: Option<usize>| i.unwrap())
+    ///     >> Progress {period_length: 4}.compose()
+    ///     >> SquareWave;
     ///
-    /// for (index, frame) in [-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0].iter().enumerate() {
-    ///     assert_eq!(*frame, pipe.next(index));
+    /// for frame in &[-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0] {
+    ///     assert_eq!(*frame, pipe.next(()));
     /// }
     /// ```
     ///
