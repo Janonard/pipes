@@ -1,8 +1,8 @@
-use iterpipe::*;
+use iterpipes::*;
 use time::Instant;
 
 mod piped {
-    use iterpipe::Pipe;
+    use iterpipes::Pipe;
 
     struct Envelope {
         attack_len: usize,
@@ -89,7 +89,7 @@ mod piped {
 }
 
 mod manual {
-    use iterpipe::Pipe;
+    use iterpipes::Pipe;
 
     pub struct Metronome {
         attack_len: usize,
