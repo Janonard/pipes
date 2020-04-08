@@ -135,19 +135,19 @@
 //!     assert_eq!(result[i], i*2);
 //! }
 //! ```
-//! 
+//!
 //! # A note on performance
-//! 
+//!
 //! Using pipes to express processing streams has side-effects on the performance. Since the resulting algorithm is created from many small functions instead of one big one, there is an overhead when these functions are called. It might also be harder for the compiler to use [SIMD instructions](https://en.wikipedia.org/wiki/SIMD).
-//! 
+//!
 //! These effects are removed when the resulting binary (program, shared object or static library) is compiled with link-time optimizations turned on. This will lead to the linker evaluating the compiled program as a whole and optimizing and inlining across functions and even crates.
-//! 
+//!
 //! These can be enabled by adding the following lines to your `Cargo.toml`:
-//! 
+//!
 //! ``` toml
 //! [profile.release]
 //! lto = true
-//! 
+//!
 //! [profile.bench]
 //! lto = true
 //! ```

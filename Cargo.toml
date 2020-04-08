@@ -1,6 +1,6 @@
 [package]
 name = "iterpipes"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jan-Oliver 'Janonard' Opdenhövel <jan.opdenhoevel@protonmail.com>"]
 edition = "2018"
 
@@ -8,6 +8,10 @@ description = "Compositional, pipes-style stream processing."
 readme = "README.md"
 repository = "https://github.com/Janonard/pipes"
 license = "MIT OR Apache-2.0"
+
+[badges]
+travis-ci = { repository = "Janonard/pipes", branch = "master" }
+maintenance = { status = "actively-developed" }
 
 [dev-dependencies]
 time = "0.2.9"
