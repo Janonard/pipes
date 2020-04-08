@@ -4,8 +4,8 @@
 
 [travis-badge]: https://travis-ci.org/Janonard/pipes.svg?branch=master
 [travis-url]: https://travis-ci.org/Janonard/pipes
-[crates-badge]: https://img.shields.io/crates/v/pipes.svg
-[crates-url]: https://crates.io/crates/pipes
+[crates-badge]: https://img.shields.io/crates/v/iterpipes.svg
+[crates-url]: https://crates.io/crates/iterpipes
 
 This Rust crate contains an abstraction layer for compositional processing pipelines, inspired by Rust's [`Iterator`](https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html) and Haskell's [`pipes` library](https://hackage.haskell.org/package/pipes).
 
