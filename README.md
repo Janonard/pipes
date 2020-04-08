@@ -2,8 +2,8 @@
 
 [![Build Status][travis-badge]][travis-url] [![Current Crates.io Version][crates-badge]][crates-url]
 
-[travis-badge]: https://travis-ci.org/Janonard/pipes.svg?branch=master
-[travis-url]: https://travis-ci.org/Janonard/pipes
+[travis-badge]: https://travis-ci.com/Janonard/pipes.svg?branch=master
+[travis-url]: https://travis-ci.com/Janonard/pipes
 [crates-badge]: https://img.shields.io/crates/v/iterpipes.svg
 [crates-url]: https://crates.io/crates/iterpipes
 
