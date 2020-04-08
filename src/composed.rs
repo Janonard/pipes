@@ -35,7 +35,6 @@ where
     type InputItem = P::InputItem;
     type OutputItem = P::OutputItem;
 
-    #[inline]
     fn next(&mut self, item: P::InputItem) -> P::OutputItem {
         self.pipe.next(item)
     }

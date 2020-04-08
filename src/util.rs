@@ -36,7 +36,6 @@ where
     type InputItem = P0::InputItem;
     type OutputItem = P1::OutputItem;
 
-    #[inline]
     fn next(&mut self, input: Self::InputItem) -> Self::OutputItem {
         self.pipe1.next(self.pipe0.next(input))
     }
@@ -72,7 +71,6 @@ where
     type InputItem = P::InputItem;
     type OutputItem = (P::InputItem, P::OutputItem);
 
-    #[inline]
     fn next(&mut self, input: P::InputItem) -> (P::InputItem, P::OutputItem) {
         (input.clone(), self.pipe.next(input))
     }
@@ -121,7 +119,6 @@ where
     type InputItem = I;
     type OutputItem = O;
 
-    #[inline]
     fn next(&mut self, input: I) -> O {
         (self.function)(input)
     }
@@ -151,7 +148,6 @@ where
     type InputItem = Option<P::InputItem>;
     type OutputItem = Option<P::OutputItem>;
 
-    #[inline]
     fn next(&mut self, item: Option<P::InputItem>) -> Option<P::OutputItem> {
         item.map(|item| self.pipe.next(item))
     }
@@ -181,7 +177,6 @@ impl<P: Pipe> Pipe for Enumerate<P> {
     type InputItem = P::InputItem;
     type OutputItem = (usize, P::OutputItem);
 
-    #[inline]
     fn next(&mut self, item: P::InputItem) -> (usize, P::OutputItem) {
         let next_item = self.pipe.next(item);
         let index = self.progress;

@@ -37,7 +37,6 @@ impl Pipe for Progress {
     type InputItem = usize;
     type OutputItem = f32;
 
-    #[inline]
     fn next(&mut self, index: usize) -> f32 {
         (index % self.period_length) as f32 / self.period_length as f32
     }
@@ -50,7 +49,6 @@ impl Pipe for SquareWave {
     type InputItem = f32;
     type OutputItem = f32;
 
-    #[inline]
     fn next(&mut self, progress: f32) -> f32 {
         if progress < 0.5 {
             -1.0
@@ -84,9 +82,19 @@ Another advantage of having many small methods is that you can write individual 
 
 ### Is it slower than writing it out manually?
 
-This project contains a small benchmark that tests it by calculating the signal of a metronome using a sine wave and an attack-decay envelope. Depending on your machine, it will take about 15 minutes.
+Using many small functions to build one big one obviously introduces an overhead. However, this overhead is only marginal, about 1-2%, and can also be removed completely by enabling link-time optimizations. When enabled, the llvm linker evaluates the final binary (program, shared object or static library) as whole and optimizes and inlines across function and crate boundaries. Simply add the following lines to your `Cargo.toml`:
 
-On the machines I'm using, the `Pipe`-based implementation isn't significantly slower than a manual implementation; Only by 1-2%. One important thing is that every pipe's `next` should be `#[inline]`d, since the overhead of creating new stack frames might be quite significant.
+``` toml
+[profile.release]
+lto = true
+
+[profile.bench]
+lto = true
+```
+
+This project also contains a small benchmark that calculates the signal of a metronome using a sine wave and an attack-decay envelope. Depending on your machine, it will take about 15 minutes.
+
+With lto turned off, the `Pipe`-based implementation is about 1-2% slower than a manual implementation, but with lto turned on, they're exactly the same.
 
 ### Can I use it for my commercial products?
 

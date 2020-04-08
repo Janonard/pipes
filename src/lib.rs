@@ -1,4 +1,4 @@
-//! Pipes-style stream processing.
+//! Compositional, pipes-style stream processing.
 //!
 //! This crate contains an abstraction layer for compositional processing pipelines, inspired by Rust's [`Iterator`](https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html) and Haskell's [`pipes` library](https://hackage.haskell.org/package/pipes).
 //!
@@ -22,7 +22,6 @@
 //!     type InputItem = V;
 //!     type OutputItem = V::Output;
 //!
-//!     #[inline]
 //!     fn next(&mut self, input: V) -> V::Output {
 //!         input * self.factor
 //!     }
@@ -33,8 +32,6 @@
 //! assert_eq!(4, multiply.next(2));
 //! assert_eq!(8, multiply.next(4));
 //! ```
-//!
-//! The `#[inline]` attribute is important: Most of the time, pipes are used within other pipes and their `next` method is only called in one place. Therefore, they are a good candidate for inlining. Not inlining the `next` methods may also have bad side effects. For example, if the `next` methods aren't inlined, the compiler won't be able to use [SIMD instructions](https://en.wikipedia.org/wiki/SIMD), which will result in a big performance loss.
 //!
 //! # Decoration and Composition
 //!
@@ -138,6 +135,22 @@
 //!     assert_eq!(result[i], i*2);
 //! }
 //! ```
+//! 
+//! # A note on performance
+//! 
+//! Using pipes to express processing streams has side-effects on the performance. Since the resulting algorithm is created from many small functions instead of one big one, there is an overhead when these functions are called. It might also be harder for the compiler to use [SIMD instructions](https://en.wikipedia.org/wiki/SIMD).
+//! 
+//! These effects are removed when the resulting binary (program, shared object or static library) is compiled with link-time optimizations turned on. This will lead to the linker evaluating the compiled program as a whole and optimizing and inlining across functions and even crates.
+//! 
+//! These can be enabled by adding the following lines to your `Cargo.toml`:
+//! 
+//! ``` toml
+//! [profile.release]
+//! lto = true
+//! 
+//! [profile.bench]
+//! lto = true
+//! ```
 
 /// An iterator-style pipe.
 ///
@@ -168,7 +181,6 @@ pub trait Pipe {
     ///     type InputItem = f32;
     ///     type OutputItem = i32;
     ///
-    ///     #[inline]
     ///     fn next(&mut self, input: f32) -> i32 {
     ///         input.round() as i32
     ///     }
@@ -204,7 +216,6 @@ pub trait Pipe {
     ///     type InputItem = usize;
     ///     type OutputItem = f32;
     ///
-    ///     #[inline]
     ///     fn next(&mut self, index: usize) -> f32 {
     ///         (index % self.period_length) as f32 / self.period_length as f32
     ///     }
@@ -217,7 +228,6 @@ pub trait Pipe {
     ///     type InputItem = f32;
     ///     type OutputItem = f32;
     ///
-    ///     #[inline]
     ///     fn next(&mut self, progress: f32) -> f32 {
     ///         if progress < 0.5 {
     ///             -1.0
@@ -267,7 +277,6 @@ pub trait Pipe {
     ///     type InputItem = usize;
     ///     type OutputItem = f32;
     ///
-    ///     #[inline]
     ///     fn next(&mut self, index: usize) -> f32 {
     ///         (index % self.period_length) as f32 / self.period_length as f32
     ///     }
@@ -280,7 +289,6 @@ pub trait Pipe {
     ///     type InputItem = f32;
     ///     type OutputItem = f32;
     ///
-    ///     #[inline]
     ///     fn next(&mut self, progress: f32) -> f32 {
     ///         if progress < 0.5 {
     ///             -1.0
@@ -322,7 +330,6 @@ pub trait Pipe {
     ///     type InputItem = ();
     ///     type OutputItem = Option<&'a T>;
     ///
-    ///     #[inline]
     ///     fn next(&mut self, _: ()) -> Option<&'a T> {
     ///         let value = self.data.get(self.index);
     ///         if value.is_some() {
@@ -452,7 +459,6 @@ impl Pipe for () {
     type InputItem = ();
     type OutputItem = ();
 
-    #[inline]
     fn next(&mut self, _: ()) {}
 }
 

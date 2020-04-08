@@ -22,7 +22,6 @@ mod piped {
         type InputItem = usize;
         type OutputItem = f32;
 
-        #[inline]
         fn next(&mut self, index: usize) -> f32 {
             if index < self.attack_len {
                 index as f32 / self.attack_len as f32
@@ -48,7 +47,6 @@ mod piped {
         type InputItem = usize;
         type OutputItem = f32;
 
-        #[inline]
         fn next(&mut self, index: usize) -> f32 {
             let index = index % self.wave_length;
             let progress = index as f32 / self.wave_length as f32;
@@ -81,7 +79,6 @@ mod piped {
         type InputItem = usize;
         type OutputItem = f32;
 
-        #[inline]
         fn next(&mut self, index: usize) -> f32 {
             self.sine.next(index) * self.env.next(index % self.pulse_distance)
         }
@@ -118,7 +115,6 @@ mod manual {
         type InputItem = usize;
         type OutputItem = f32;
 
-        #[inline]
         fn next(&mut self, index: usize) -> f32 {
             let wave_index = index % self.wave_length;
             let wave_progress = wave_index as f32 / self.wave_length as f32;
@@ -143,6 +139,8 @@ where
     P: Pipe<InputItem = usize, OutputItem = f32>,
     F: FnMut() -> P,
 {
+    use std::io::Write;
+
     let mut signal_buffer = vec![0.0; length].into_boxed_slice();
     let mut durations: Vec<f32> = Vec::with_capacity(runs);
 
@@ -155,6 +153,7 @@ where
         let end = Instant::now();
         let duration = (end - start).as_seconds_f32();
         print!("{}, ", duration);
+        std::io::stdout().flush().unwrap();
         durations.push(duration);
     }
     println!();
@@ -168,8 +167,8 @@ const INFO: &str = "# This program benchmarks pipes by rendering a simple metron
 # depending on your system. The runtime of each execution is printed in a CSV-style format, which
 # can parsed and analyzed.
 #
-# This benchmark shows that pipes-based implementations aren't significantly slower than manually
-# implemented ones; Only by 1.0% ± 0.7%.
+# This benchmark shows that pipes-based implementations is exactly as fast as a manual 
+# implementation if it was compiled with the lto flag.
 #
 ";
 
