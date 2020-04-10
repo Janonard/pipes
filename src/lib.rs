@@ -478,6 +478,15 @@ where
     }
 }
 
+impl<'a, P: Pipe> Pipe for &'a mut P {
+    type InputItem = P::InputItem;
+    type OutputItem = P::OutputItem;
+
+    fn next(&mut self, input: P::InputItem) -> P::OutputItem {
+        (*self).next(input)
+    }
+}
+
 mod util;
 pub use util::*;
 
