@@ -462,6 +462,22 @@ impl Pipe for () {
     fn next(&mut self, _: ()) {}
 }
 
+impl<P0, P1> Pipe for (P0, P1)
+where
+    P0: Pipe,
+    P1: Pipe,
+{
+    type InputItem = (P0::InputItem, P1::InputItem);
+    type OutputItem = (P0::OutputItem, P1::OutputItem);
+
+    fn next(
+        &mut self,
+        (p0_input, p1_input): (P0::InputItem, P1::InputItem),
+    ) -> (P0::OutputItem, P1::OutputItem) {
+        (self.0.next(p0_input), self.1.next(p1_input))
+    }
+}
+
 mod util;
 pub use util::*;
 
