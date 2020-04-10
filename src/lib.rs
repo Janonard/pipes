@@ -478,7 +478,7 @@ where
     }
 }
 
-impl<'a, P: Pipe> Pipe for &'a mut P {
+impl<'a, P: Pipe + ?Sized> Pipe for &'a mut P {
     type InputItem = P::InputItem;
     type OutputItem = P::OutputItem;
 
