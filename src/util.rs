@@ -269,3 +269,56 @@ impl<P: Pipe> Pipe for Enumerate<P> {
         self.progress = 0;
     }
 }
+
+/// A continous counter.
+///
+/// This pipe has an counter and a delta value. Every time `next` is called, the current counter value is returned and the delta is added to the counter. It also knows it's starting value and can therefore be reseted.
+///
+/// # Example
+///
+/// ```
+/// use iterpipes::*;
+///
+/// let mut counter: Counter<u8> = Counter::new(1, 2);
+/// assert_eq!(1, counter.next(()));
+/// assert_eq!(3, counter.next(()));
+/// ```
+pub struct Counter<T>
+where
+    T: std::ops::AddAssign<T> + Copy,
+{
+    starting_value: T,
+    delta: T,
+    counter: T,
+}
+
+impl<T> Counter<T>
+where
+    T: std::ops::AddAssign<T> + Copy,
+{
+    pub fn new(starting_value: T, delta: T) -> Self {
+        Self {
+            starting_value,
+            delta,
+            counter: starting_value,
+        }
+    }
+}
+
+impl<T> Pipe for Counter<T>
+where
+    T: std::ops::AddAssign<T> + Copy,
+{
+    type InputItem = ();
+    type OutputItem = T;
+
+    fn next(&mut self, _: ()) -> T {
+        let item = self.counter;
+        self.counter += self.delta;
+        item
+    }
+
+    fn reset(&mut self) {
+        self.counter = self.starting_value;
+    }
+}
