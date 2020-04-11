@@ -2,7 +2,7 @@ use crate::Pipe;
 
 /// A pipe that yields the elements of an iterator.
 ///
-/// As iterators don't have input items, this always takes a `()` and returns the next value of the iterators.
+/// As iterators don't have input items, this always takes a `()` and returns the next value of the iterators. Also, iterators can not be reseted and therefore, `reset` will panic if it's called.
 pub struct PipeIter<I: Iterator> {
     iter: I,
 }
@@ -20,6 +20,10 @@ impl<I: Iterator> Pipe for PipeIter<I> {
 
     fn next(&mut self, _: ()) -> Option<I::Item> {
         self.iter.next()
+    }
+
+    fn reset(&mut self) {
+        unimplemented!();
     }
 }
 

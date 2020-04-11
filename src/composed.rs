@@ -38,6 +38,10 @@ where
     fn next(&mut self, item: P::InputItem) -> P::OutputItem {
         self.pipe.next(item)
     }
+
+    fn reset(&mut self) {
+        self.pipe.reset();
+    }
 }
 
 impl<P0, P1> Shr<P1> for Composed<P0>

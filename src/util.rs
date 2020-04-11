@@ -39,6 +39,11 @@ where
     fn next(&mut self, input: Self::InputItem) -> Self::OutputItem {
         self.pipe1.next(self.pipe0.next(input))
     }
+
+    fn reset(&mut self) {
+        self.pipe0.reset();
+        self.pipe1.reset();
+    }
 }
 
 /// A pipe that bypasses the effects of an internal pipe.
@@ -74,22 +79,33 @@ where
     fn next(&mut self, input: P::InputItem) -> (P::InputItem, P::OutputItem) {
         (input.clone(), self.pipe.next(input))
     }
+
+    fn reset(&mut self) {
+        self.pipe.reset();
+    }
 }
 
-/// A "lazily" create pipe.
+/// A "lazily" create pipe with a mutable state.
 ///
 /// This pipe's behavior is defined by a callable object, for example a lambda expression, and can therefore be "lazily" created inline.
+///
+/// Since callable objects with mutable state can not be reseted, `reset` will panic if it's called.
 ///
 /// # Example
 ///
 /// ```
 /// use iterpipes::*;
 ///
-/// let mut pipe = Lazy::new(|i: u8| 2*i);
-/// assert_eq!(2, pipe.next(1));
+/// let mut counter: u8 = 0;
+/// let mut pipe = LazyMut::new(|i: u8| {
+///     counter += 1;
+///     i*counter
+/// });
+///
+/// assert_eq!(1, pipe.next(1));
 /// assert_eq!(4, pipe.next(2));
 /// ```
-pub struct Lazy<I, O, F>
+pub struct LazyMut<I, O, F>
 where
     F: FnMut(I) -> O,
 {
@@ -98,13 +114,13 @@ where
     output: PhantomData<O>,
 }
 
-impl<I, O, F> Lazy<I, O, F>
+impl<I, O, F> LazyMut<I, O, F>
 where
     F: FnMut(I) -> O,
 {
     /// Create a new lazy pipe.
     pub fn new(function: F) -> Self {
-        Self {
+        LazyMut {
             function,
             input: PhantomData,
             output: PhantomData,
@@ -112,7 +128,7 @@ where
     }
 }
 
-impl<I, O, F> Pipe for Lazy<I, O, F>
+impl<I, O, F> Pipe for LazyMut<I, O, F>
 where
     F: FnMut(I) -> O,
 {
@@ -122,6 +138,66 @@ where
     fn next(&mut self, input: I) -> O {
         (self.function)(input)
     }
+
+    fn reset(&mut self) {
+        unimplemented!();
+    }
+}
+
+/// A "lazily" create pipe with an immutable state.
+///
+/// This pipe's behavior is defined by a callable object, for example a lambda expression, and can therefore be "lazily" created inline.
+///
+/// Since callable objects with an immutable state don't need to be reseted, `reset` is a no-op.
+///
+/// # Example
+///
+/// ```
+/// use iterpipes::*;
+///
+/// let mut counter: u8 = 2;
+/// let mut pipe = Lazy::new(|i: u8| {
+///     i*counter
+/// });
+///
+/// assert_eq!(2, pipe.next(1));
+/// assert_eq!(4, pipe.next(2));
+/// ```
+pub struct Lazy<I, O, F>
+where
+    F: Fn(I) -> O,
+{
+    function: F,
+    input: PhantomData<I>,
+    output: PhantomData<O>,
+}
+
+impl<I, O, F> Lazy<I, O, F>
+where
+    F: Fn(I) -> O,
+{
+    /// Create a new lazy pipe.
+    pub fn new(function: F) -> Self {
+        Lazy {
+            function,
+            input: PhantomData,
+            output: PhantomData,
+        }
+    }
+}
+
+impl<I, O, F> Pipe for Lazy<I, O, F>
+where
+    F: Fn(I) -> O,
+{
+    type InputItem = I;
+    type OutputItem = O;
+
+    fn next(&mut self, input: I) -> O {
+        (self.function)(input)
+    }
+
+    fn reset(&mut self) {}
 }
 
 /// A pipe that wraps another pipe's IO in an `Option`.
@@ -150,6 +226,10 @@ where
 
     fn next(&mut self, item: Option<P::InputItem>) -> Option<P::OutputItem> {
         item.map(|item| self.pipe.next(item))
+    }
+
+    fn reset(&mut self) {
+        self.pipe.reset();
     }
 }
 
@@ -182,5 +262,10 @@ impl<P: Pipe> Pipe for Enumerate<P> {
         let index = self.progress;
         self.progress += 1;
         (index, next_item)
+    }
+
+    fn reset(&mut self) {
+        self.pipe.reset();
+        self.progress = 0;
     }
 }

@@ -164,6 +164,46 @@ pub trait Pipe {
     /// Calculate the next output item, based on an input item.
     fn next(&mut self, item: Self::InputItem) -> Self::OutputItem;
 
+    /// Reset the state of the pipe.
+    ///
+    /// If implemented, this method resets the pipe to the state it had before the first output was retrieved. Since all decorator pipes of this crate implement it, it can be be used to reset the state of a whole pipeline without needing to constructing it again.
+    ///
+    /// If your pipe can't be reseted, you may use the `unimplemented!()` macro. However, you should note this behavior in your documentation!
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iterpipes::*;
+    ///
+    /// /// A pipe that counts up.
+    /// struct Counter {
+    ///     index: usize,
+    /// }
+    ///
+    /// impl Pipe for Counter {
+    ///     type InputItem = ();
+    ///     type OutputItem = usize;
+    ///
+    ///     fn next(&mut self, _: ()) -> usize {
+    ///         let output = self.index;
+    ///         self.index += 1;
+    ///         output
+    ///     }
+    ///
+    ///     fn reset(&mut self) {
+    ///         self.index = 0;
+    ///     }
+    /// }
+    ///
+    /// let mut counter = Counter { index: 0};
+    /// assert_eq!(0, counter.next(()));
+    /// assert_eq!(1, counter.next(()));
+    /// counter.reset();
+    /// assert_eq!(0, counter.next(()));
+    /// assert_eq!(1, counter.next(()));
+    /// ```
+    fn reset(&mut self) {}
+
     /// Create a bypassed version of the pipe.
     ///
     /// The returned pipe clones the input item, calculates the next output item and returns both
@@ -460,6 +500,8 @@ impl Pipe for () {
     type OutputItem = ();
 
     fn next(&mut self, _: ()) {}
+
+    fn reset(&mut self) {}
 }
 
 impl<P0, P1> Pipe for (P0, P1)
@@ -476,6 +518,11 @@ where
     ) -> (P0::OutputItem, P1::OutputItem) {
         (self.0.next(p0_input), self.1.next(p1_input))
     }
+
+    fn reset(&mut self) {
+        self.0.reset();
+        self.1.reset();
+    }
 }
 
 impl<'a, P: Pipe + ?Sized> Pipe for &'a mut P {
@@ -484,6 +531,10 @@ impl<'a, P: Pipe + ?Sized> Pipe for &'a mut P {
 
     fn next(&mut self, input: P::InputItem) -> P::OutputItem {
         (*self).next(input)
+    }
+
+    fn reset(&mut self) {
+        (*self).reset();
     }
 }
 
