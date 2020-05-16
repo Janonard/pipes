@@ -1,4 +1,4 @@
-use crate::{Connector, Pipe};
+use crate::{Connector, Pipe, ResetablePipe};
 use std::ops::Shr;
 
 /// A composable or composed pipe.
@@ -38,7 +38,12 @@ where
     fn next(&mut self, item: P::InputItem) -> P::OutputItem {
         self.pipe.next(item)
     }
+}
 
+impl<P: ResetablePipe> ResetablePipe for Composed<P>
+where
+    P: ResetablePipe,
+{
     fn reset(&mut self) {
         self.pipe.reset();
     }

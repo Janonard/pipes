@@ -1,4 +1,4 @@
-use crate::Pipe;
+use crate::{Pipe, ResetablePipe};
 use std::marker::PhantomData;
 
 /// A pipe that connects two other pipes together.
@@ -39,7 +39,13 @@ where
     fn next(&mut self, input: Self::InputItem) -> Self::OutputItem {
         self.pipe1.next(self.pipe0.next(input))
     }
+}
 
+impl<P0, P1> ResetablePipe for Connector<P0, P1>
+where
+    P0: ResetablePipe,
+    P1: ResetablePipe<InputItem = P0::OutputItem>,
+{
     fn reset(&mut self) {
         self.pipe0.reset();
         self.pipe1.reset();
@@ -79,7 +85,13 @@ where
     fn next(&mut self, input: P::InputItem) -> (P::InputItem, P::OutputItem) {
         (input.clone(), self.pipe.next(input))
     }
+}
 
+impl<P> ResetablePipe for Bypass<P>
+where
+    P: ResetablePipe,
+    P::InputItem: Clone,
+{
     fn reset(&mut self) {
         self.pipe.reset();
     }
@@ -138,10 +150,6 @@ where
     fn next(&mut self, input: I) -> O {
         (self.function)(input)
     }
-
-    fn reset(&mut self) {
-        unimplemented!();
-    }
 }
 
 /// A "lazily" create pipe with an immutable state.
@@ -196,7 +204,12 @@ where
     fn next(&mut self, input: I) -> O {
         (self.function)(input)
     }
+}
 
+impl<I, O, F> ResetablePipe for Lazy<I, O, F>
+where
+    F: Fn(I) -> O,
+{
     fn reset(&mut self) {}
 }
 
@@ -227,7 +240,12 @@ where
     fn next(&mut self, item: Option<P::InputItem>) -> Option<P::OutputItem> {
         item.map(|item| self.pipe.next(item))
     }
+}
 
+impl<P> ResetablePipe for Optional<P>
+where
+    P: ResetablePipe,
+{
     fn reset(&mut self) {
         self.pipe.reset();
     }
@@ -263,7 +281,9 @@ impl<P: Pipe> Pipe for Enumerate<P> {
         self.progress += 1;
         (index, next_item)
     }
+}
 
+impl<P: ResetablePipe> ResetablePipe for Enumerate<P> {
     fn reset(&mut self) {
         self.pipe.reset();
         self.progress = 0;
@@ -317,7 +337,12 @@ where
         self.counter += self.delta;
         item
     }
+}
 
+impl<T> ResetablePipe for Counter<T>
+where
+    T: std::ops::AddAssign<T> + Copy,
+{
     fn reset(&mut self) {
         self.counter = self.starting_value;
     }

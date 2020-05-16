@@ -21,10 +21,6 @@ impl<I: Iterator> Pipe for PipeIter<I> {
     fn next(&mut self, _: ()) -> Option<I::Item> {
         self.iter.next()
     }
-
-    fn reset(&mut self) {
-        unimplemented!();
-    }
 }
 
 /// An iterator that yields values by creating a default value and running it through a pipe.

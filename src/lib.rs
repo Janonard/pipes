@@ -164,46 +164,6 @@ pub trait Pipe {
     /// Calculate the next output item, based on an input item.
     fn next(&mut self, item: Self::InputItem) -> Self::OutputItem;
 
-    /// Reset the state of the pipe.
-    ///
-    /// If implemented, this method resets the pipe to the state it had before the first output was retrieved. Since all decorator pipes of this crate implement it, it can be be used to reset the state of a whole pipeline without needing to constructing it again.
-    ///
-    /// If your pipe can't be reseted, you may use the `unimplemented!()` macro. However, you should note this behavior in your documentation!
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use iterpipes::*;
-    ///
-    /// /// A pipe that counts up.
-    /// struct Counter {
-    ///     index: usize,
-    /// }
-    ///
-    /// impl Pipe for Counter {
-    ///     type InputItem = ();
-    ///     type OutputItem = usize;
-    ///
-    ///     fn next(&mut self, _: ()) -> usize {
-    ///         let output = self.index;
-    ///         self.index += 1;
-    ///         output
-    ///     }
-    ///
-    ///     fn reset(&mut self) {
-    ///         self.index = 0;
-    ///     }
-    /// }
-    ///
-    /// let mut counter = Counter { index: 0};
-    /// assert_eq!(0, counter.next(()));
-    /// assert_eq!(1, counter.next(()));
-    /// counter.reset();
-    /// assert_eq!(0, counter.next(()));
-    /// assert_eq!(1, counter.next(()));
-    /// ```
-    fn reset(&mut self) {}
-
     /// Create a bypassed version of the pipe.
     ///
     /// The returned pipe clones the input item, calculates the next output item and returns both
@@ -495,12 +455,63 @@ pub trait Pipe {
     }
 }
 
+/// A pipe that can be reseted to its initial state.
+///
+/// Pipes may have an internal state which they also may modify with every item they process. However, there a situations where wants to reset a pipeline to it's initial state without needing to reconstruct it. Pipes that have the ability to be reseted to their inital state implement this trait. After [`reset`](#method.reset) was called, the pipe is reseted to it's construction state.
+///
+/// Many decorators implement `ResetablePipe` where possible, which means that pipelines that were constructed from resetable pipes will be resetable too. One major exception is the [`LazyMut`](struct.LazyMut.html) pipe. Since the function object may modify it's state and doesn't offer a way to reset this state, a pipeline that contains a `LazyMut` is not resetable.
+pub trait ResetablePipe: Pipe {
+    /// Reset the state of the pipe.
+    ///
+    /// If implemented, this method resets the pipe to the state it had before the first output was retrieved. Since all decorator pipes of this crate implement it, it can be be used to reset the state of a whole pipeline without needing to constructing it again.
+    ///
+    /// If your pipe can't be reseted, you may use the `unimplemented!()` macro. However, you should note this behavior in your documentation!
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iterpipes::*;
+    ///
+    /// /// A pipe that counts up.
+    /// struct Counter {
+    ///     index: usize,
+    /// }
+    ///
+    /// impl Pipe for Counter {
+    ///     type InputItem = ();
+    ///     type OutputItem = usize;
+    ///
+    ///     fn next(&mut self, _: ()) -> usize {
+    ///         let output = self.index;
+    ///         self.index += 1;
+    ///         output
+    ///     }
+    /// }
+    ///
+    /// impl ResetablePipe for Counter {
+    ///     fn reset(&mut self) {
+    ///         self.index = 0;
+    ///     }
+    /// }
+    ///
+    /// let mut counter = Counter { index: 0};
+    /// assert_eq!(0, counter.next(()));
+    /// assert_eq!(1, counter.next(()));
+    /// counter.reset();
+    /// assert_eq!(0, counter.next(()));
+    /// assert_eq!(1, counter.next(()));
+    /// ```
+    fn reset(&mut self);
+}
+
 impl Pipe for () {
     type InputItem = ();
     type OutputItem = ();
 
     fn next(&mut self, _: ()) {}
+}
 
+impl ResetablePipe for () {
     fn reset(&mut self) {}
 }
 
@@ -518,7 +529,13 @@ where
     ) -> (P0::OutputItem, P1::OutputItem) {
         (self.0.next(p0_input), self.1.next(p1_input))
     }
+}
 
+impl<P0, P1> ResetablePipe for (P0, P1)
+where
+    P0: ResetablePipe,
+    P1: ResetablePipe,
+{
     fn reset(&mut self) {
         self.0.reset();
         self.1.reset();
@@ -532,7 +549,9 @@ impl<'a, P: Pipe + ?Sized> Pipe for &'a mut P {
     fn next(&mut self, input: P::InputItem) -> P::OutputItem {
         (*self).next(input)
     }
+}
 
+impl<'a, P: ResetablePipe + ?Sized> ResetablePipe for &'a mut P {
     fn reset(&mut self) {
         (*self).reset();
     }
