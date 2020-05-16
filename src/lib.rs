@@ -135,18 +135,18 @@
 //!     assert_eq!(result[i], i*2);
 //! }
 //! ```
-//! 
+//!
 //! # Tuples
-//! 
+//!
 //! A tuple of pipes is a pipe too! You can simply use two pipes to create a new one that processes both input items and outputs both output items:
-//! 
+//!
 //! ```
 //! use iterpipes::{Pipe, Lazy};
-//! 
+//!
 //! let mut pipe0 = Lazy::new(|i: f32| 2.0 * i);
 //! let mut pipe1 = Lazy::new(|i: u32| 2 + i);
 //! let mut pipe2 = Lazy::new(|i: bool| !i);
-//! 
+//!
 //! let mut super_pipe = (pipe0, pipe1, pipe2);
 //! assert_eq!(super_pipe.next((2.0, 1, true)), (4.0, 3, false));
 //! ```

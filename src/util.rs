@@ -349,16 +349,16 @@ where
 }
 
 /// A simple forwarding pipe.
-/// 
+///
 /// This pipe takes an input item and immediately emits it again.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use iterpipes::*;
-/// 
+///
 /// let mut ditto: Ditto<u8> = Ditto::default();
-/// 
+///
 /// assert_eq!(ditto.next(42), 42);
 /// ```
 pub struct Ditto<T> {
@@ -367,16 +367,14 @@ pub struct Ditto<T> {
 
 impl<T> Default for Ditto<T> {
     fn default() -> Self {
-        Self {
-            item: PhantomData,
-        }
+        Self { item: PhantomData }
     }
 }
 
 impl<T> Pipe for Ditto<T> {
     type InputItem = T;
     type OutputItem = T;
-    
+
     fn next(&mut self, item: T) -> T {
         item
     }
