@@ -135,6 +135,21 @@
 //!     assert_eq!(result[i], i*2);
 //! }
 //! ```
+//! 
+//! # Tuples
+//! 
+//! A tuple of pipes is a pipe too! You can simply use two pipes to create a new one that processes both input items and outputs both output items:
+//! 
+//! ```
+//! use iterpipes::{Pipe, Lazy};
+//! 
+//! let mut pipe0 = Lazy::new(|i: f32| 2.0 * i);
+//! let mut pipe1 = Lazy::new(|i: u32| 2 + i);
+//! let mut pipe2 = Lazy::new(|i: bool| !i);
+//! 
+//! let mut super_pipe = (pipe0, pipe1, pipe2);
+//! assert_eq!(super_pipe.next((2.0, 1, true)), (4.0, 3, false));
+//! ```
 //!
 //! # A note on performance
 //!
@@ -515,33 +530,6 @@ impl ResetablePipe for () {
     fn reset(&mut self) {}
 }
 
-impl<P0, P1> Pipe for (P0, P1)
-where
-    P0: Pipe,
-    P1: Pipe,
-{
-    type InputItem = (P0::InputItem, P1::InputItem);
-    type OutputItem = (P0::OutputItem, P1::OutputItem);
-
-    fn next(
-        &mut self,
-        (p0_input, p1_input): (P0::InputItem, P1::InputItem),
-    ) -> (P0::OutputItem, P1::OutputItem) {
-        (self.0.next(p0_input), self.1.next(p1_input))
-    }
-}
-
-impl<P0, P1> ResetablePipe for (P0, P1)
-where
-    P0: ResetablePipe,
-    P1: ResetablePipe,
-{
-    fn reset(&mut self) {
-        self.0.reset();
-        self.1.reset();
-    }
-}
-
 impl<'a, P: Pipe + ?Sized> Pipe for &'a mut P {
     type InputItem = P::InputItem;
     type OutputItem = P::OutputItem;
@@ -565,6 +553,8 @@ pub use iter::*;
 
 mod composed;
 pub use composed::*;
+
+mod tuples;
 
 #[test]
 fn trait_object() {
