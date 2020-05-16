@@ -12,7 +12,6 @@ license = "MIT OR Apache-2.0"
 exclude = [".travis.yml"]
 
 [badges]
-travis-ci = { repository = "Janonard/pipes", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dev-dependencies]
