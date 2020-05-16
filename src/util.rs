@@ -347,3 +347,41 @@ where
         self.counter = self.starting_value;
     }
 }
+
+/// A simple forwarding pipe.
+/// 
+/// This pipe takes an input item and immediately emits it again.
+/// 
+/// # Example
+/// 
+/// ```
+/// use iterpipes::*;
+/// 
+/// let mut ditto: Ditto<u8> = Ditto::default();
+/// 
+/// assert_eq!(ditto.next(42), 42);
+/// ```
+pub struct Ditto<T> {
+    item: PhantomData<T>,
+}
+
+impl<T> Default for Ditto<T> {
+    fn default() -> Self {
+        Self {
+            item: PhantomData,
+        }
+    }
+}
+
+impl<T> Pipe for Ditto<T> {
+    type InputItem = T;
+    type OutputItem = T;
+    
+    fn next(&mut self, item: T) -> T {
+        item
+    }
+}
+
+impl<T> ResetablePipe for Ditto<T> {
+    fn reset(&mut self) {}
+}
